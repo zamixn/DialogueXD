@@ -1,0 +1,21 @@
+{
+  "name": "com.frameworksxd.dialoguesxd",
+  "version": "0.5.0",
+  "displayName": "Dialogue XD",
+  "unity": "2021.3",
+  "unityRelease": "0b5",
+  "documentationUrl": "https://github.com/zamixn/DialogueXD",
+  "changelogUrl": "https://github.com/zamixn/DialogueXD",
+  "licensesUrl": "https://creativecommons.org/licenses/by/4.0/legalcode",
+  "keywords": [
+    "Graph",
+    "Dialogue"
+  ],
+  "author": {
+    "name": "\u017dygimantas Kadi\u0161a",
+    "email": "zygimantas.kadisa@gmail.com",
+    "url": "https://github.com/zamixn/DialogueXD"
+  },
+  "type": "library",
+  "description": "Dialogue system with a graph user interface. \n\nBased on: https://www.youtube.com/watch?v=nvELzBYMK1U\n\nWith custom dialogue runner and more :)"
+}

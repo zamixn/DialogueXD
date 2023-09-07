@@ -1,0 +1,140 @@
+using FrameworksXD.DialogueXD.Editor.Save;
+using FrameworksXD.DialogueXD.Editor.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.Experimental.GraphView;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace FrameworksXD.DialogueXD.Editor.GraphEditor.Elements
+{
+    public class DialogueNode : Node
+    {
+        protected DialogueGraphView DialogueGraphView;
+
+        public string Id { get; set; }
+        public string DialogueName { get; set; }
+        public List<DialogueChoiceSaveData> Choices { get; set; }
+        public string Text { get; set; }
+        public DialogueType DialogueType { get; set; }
+
+        private Color DefaultBackgroundColor;
+        private Color DefaultTitleBackgroundColor;
+        public DialogueGroup Group { get; set; }
+
+
+        public virtual void Initialize(string nodeName, DialogueGraphView dialogueGraphView, Vector2 position)
+        {
+            Id = Guid.NewGuid().ToString();
+            DialogueName = nodeName;
+            Choices = new List<DialogueChoiceSaveData>();
+            Text = "placeholder";
+
+            DefaultBackgroundColor = new Color(29f / 255f, 29 / 255f, 30 / 255f);
+            DefaultTitleBackgroundColor = titleContainer.style.borderTopColor.value;
+            DialogueGraphView = dialogueGraphView;
+
+            SetPosition(new Rect(position, Vector2.zero));
+
+            mainContainer.AddClasses("d-node__main-container");
+            extensionContainer.AddClasses("d-node__extension-container");
+        }
+
+        public virtual void Draw()
+        {
+            TextField dialogueNameTextField = DialogueUIElementUtilities.CreateTextField(DialogueName, null, callback => 
+            {
+                TextField target = (TextField)callback.target;
+                target.value = callback.newValue.RemoveWhitespaces().RemoveSpecialCharacters();
+
+                if (string.IsNullOrEmpty(target.value))
+                {
+                    if (!string.IsNullOrEmpty(DialogueName))
+                        ++DialogueGraphView.RepeatedNameErrorCount;
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(DialogueName))
+                        --DialogueGraphView.RepeatedNameErrorCount;
+                }
+
+                if (Group == null)
+                {
+                    DialogueGraphView.RemoveUngroupedNode(this);
+                    DialogueName = target.value;
+                    DialogueGraphView.AddUngroupedNode(this);
+                    return;
+                }
+
+                DialogueGroup currentGroup = Group;
+                DialogueGraphView.RemoveGroupedNode(this, currentGroup);
+                DialogueName = target.value;
+                DialogueGraphView.AddGroupedNode(this, currentGroup);
+
+            });
+            titleContainer.Insert(0, dialogueNameTextField);
+            dialogueNameTextField.AddClasses("d-node__textfield", "d-node__filename-textfield", "d-node__textfield__hidden");
+
+            Port inputPort = this.CreatePort("Previous Conenction", Orientation.Horizontal, Direction.Input, Port.Capacity.Multi);
+            inputContainer.Add(inputPort);
+
+            VisualElement customDataContainer = new VisualElement();
+            customDataContainer.AddClasses("d-node__custom-data-container");
+            Foldout textFoldout = DialogueUIElementUtilities.CreateFoldout("Dialogue Text");
+            TextField textTextField = DialogueUIElementUtilities.CreateTextField(Text, null, callback => 
+            {
+                Text = callback.newValue;
+            });
+            textTextField.AddClasses("d-node__textfield", "d-node__quote-textfield");
+            textFoldout.Add(textTextField);
+            customDataContainer.Add(textFoldout);
+            extensionContainer.Add(textFoldout);
+        }
+
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            evt.menu.AppendAction("Disconnect Inputs", _ => DisconnectPorts(inputContainer));
+            evt.menu.AppendAction("Disconnect Outputs", _ => DisconnectPorts(outputContainer));
+            base.BuildContextualMenu(evt);
+        }
+
+        public void DisconnectAllPorts()
+        {
+            DisconnectPorts(inputContainer);
+            DisconnectPorts(outputContainer);
+        }
+
+        private void DisconnectPorts(VisualElement container)
+        {
+            foreach (Port port in container.Children())
+            {
+                if (!port.connected)
+                    continue;
+
+                DialogueGraphView.DeleteElements(port.connections);
+            }
+        }
+
+        public bool IsStartingNode()
+        {
+            Port inputPort = (Port)inputContainer.Children().First();
+            return !inputPort.connected;
+        }
+
+        public void SetErrorStyle(Color color)
+        {
+            mainContainer.style.backgroundColor = color;
+            titleContainer.style.borderTopColor = color;
+            titleContainer.style.borderTopWidth = 2f;
+        }
+
+        public void ResetStyle()
+        {
+            mainContainer.style.backgroundColor = DefaultBackgroundColor;
+            titleContainer.style.borderTopColor = DefaultTitleBackgroundColor;
+            titleContainer.style.borderTopWidth = 0f;
+        }
+
+    }
+}

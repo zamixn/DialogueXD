@@ -15,6 +15,17 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 {
     public static class DialogueIOUtility
     {
+        private const string EditorFolderPath = "Assets/Editor";
+        private const string GraphsFolder = "Assets/Editor/Dialogues";
+        private const string DialoguesSOPath = "Assets/Dialogues";
+        private const string DialogueFolderName = "Dialogues";
+        private const string GlobalFolderName = "Global";
+        private const string GraphSOSuffix = "Graph";
+
+        private static string GetGroupFolderPath(string groupName) => $"{ContainerFolderPath}/Groups/{groupName}";
+        private static string GetGroupDialoguesFolderPath(string groupName) => $"{GetGroupFolderPath(groupName)}/{DialogueFolderName}";
+        private static string GetGlobalDialoguesPath() => $"{ContainerFolderPath}/{GlobalFolderName}/{DialogueFolderName}";
+
         private static string GraphFileName;
         private static string ContainerFolderPath;
         private static DialogueGraphView DialogueGraphView;
@@ -30,7 +41,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
         public static void Initialize(DialogueGraphView dialogueGraphView, string graphName)
         {
             GraphFileName = graphName;
-            ContainerFolderPath = $"Assets/DialogueSystem/Dialogues/{GraphFileName}";
+            ContainerFolderPath = $"{DialoguesSOPath}/{GraphFileName}";
             DialogueGraphView = dialogueGraphView;
 
             Groups = new List<DialogueGroup>();
@@ -43,14 +54,13 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             LoadedNodes = new Dictionary<string, DialogueNode>();
         }
 
-        #region Saving
         public static void Save()
         {
             CreateStaticFolders();
 
             GetElementsFromGraphView();
 
-            DialogueGraphSaveDataSO graphData = CreateAsset<DialogueGraphSaveDataSO>("Assets/Editor/DialogueSystem/Graphs", $"{GraphFileName}Graph");
+            DialogueGraphSaveDataSO graphData = CreateAsset<DialogueGraphSaveDataSO>(GraphsFolder, $"{GraphFileName}{GraphSOSuffix}");
             graphData.Initialize(GraphFileName);
 
             DialogueContainerSO dialogueContainer = CreateAsset<DialogueContainerSO>(ContainerFolderPath, GraphFileName);
@@ -61,7 +71,34 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
             SaveAsset(graphData);
             SaveAsset(dialogueContainer);
+
+            ClearCachedData();
         }
+
+        public static void Load()
+        {
+            string path = GraphsFolder;
+            DialogueGraphSaveDataSO graphData = LoadAsset<DialogueGraphSaveDataSO>(path, GraphFileName);
+            if (graphData == null)
+            {
+                EditorUtility.DisplayDialog
+                (
+                    "Couldn't load the file",
+                    $"The file at the following path could not be found:\n\n{path}/{GraphFileName}",
+                    "Ok"
+                );
+                return;
+            }
+
+            DialogueGraphWindow.UpdateFileName(graphData.FileName);
+            LoadGroups(graphData.Groups);
+            LoadNodes(graphData.Nodes);
+            LoadNodesConnections();
+
+            ClearCachedData();
+        }
+
+        #region Saving helpers
 
         private static void SaveNodes(DialogueGraphSaveDataSO graphData, DialogueContainerSO dialogueContainer)
         {
@@ -97,7 +134,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
                         foreach (string nodeToRemove in nodesToRemove)
                         {
-                            RemoveAsset($"{ContainerFolderPath}/Groups/{oldGroupedNode.Key}/Dialogues", nodeToRemove);
+                            RemoveAsset(GetGroupDialoguesFolderPath(oldGroupedNode.Key), nodeToRemove);
                         }
                     }
                 }
@@ -113,7 +150,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
                 List<string> nodesToRemove = graphData.OldUngroupedNodedNames.Except(currentUngroupedNodeNames).ToList();
                 foreach (string nodeToRemove in nodesToRemove)
                 {
-                    RemoveAsset($"{ContainerFolderPath}/Global/Dialogues", nodeToRemove);
+                    RemoveAsset(GetGlobalDialoguesPath(), nodeToRemove);
                 }
             }
             graphData.OldUngroupedNodedNames = new List<string>(currentUngroupedNodeNames);
@@ -141,12 +178,12 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             DialogueSO dialogue;
             if (node.Group != null)
             {
-                dialogue = CreateAsset<DialogueSO>($"{ContainerFolderPath}/Groups/{node.Group.title}/Dialogues", node.DialogueName);
+                dialogue = CreateAsset<DialogueSO>(GetGroupDialoguesFolderPath(node.Group.title), node.DialogueName);
                 dialogueContainer.DialogueGroups.AddItem(CreatedDialogueGroup[node.Group.Id], dialogue);
             }
             else
             {
-                dialogue = CreateAsset<DialogueSO>($"{ContainerFolderPath}/Global/Dialogues", node.DialogueName);
+                dialogue = CreateAsset<DialogueSO>(GetGlobalDialoguesPath(), node.DialogueName);
                 dialogueContainer.UngroupedDialogues.Add(dialogue);
             }
             dialogue.Initialize(node.DialogueName, node.Text, ConvertNodeChoicesToDialogueChoices(node.Choices), node.DialogueType, node.IsStartingNode());
@@ -204,7 +241,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
                 List<string> groupsToRemove = graphData.OldGroupNames.Except(currentGroupNames).ToList();
                 foreach (string groupToRemove in groupsToRemove)
                 {
-                    RemoveFolder($"{ContainerFolderPath}/Groups/{groupToRemove}");
+                    RemoveFolder(GetGroupFolderPath(groupToRemove));
                 }
             }
 
@@ -215,9 +252,9 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
         {
             string groupName = group.title;
             CreateFolder($"{ContainerFolderPath}/Groups", groupName);
-            CreateFolder($"{ContainerFolderPath}/Groups/{groupName}", "Dialogues");
+            CreateFolder(GetGroupFolderPath(groupName), DialogueFolderName);
 
-            DialogueGroupSO dialogueGroup = CreateAsset<DialogueGroupSO>($"{ContainerFolderPath}/Groups/{groupName}", groupName);
+            DialogueGroupSO dialogueGroup = CreateAsset<DialogueGroupSO>(GetGroupFolderPath(groupName), groupName);
             dialogueGroup.Initialize(groupName);
             CreatedDialogueGroup.Add(group.Id, dialogueGroup);
             dialogueContainer.DialogueGroups.Add(dialogueGroup, new List<DialogueSO>());
@@ -241,7 +278,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             T asset = LoadAsset<T>(path, assetName);
             if (asset == null)
             {
-                string fullPath = $"{path}/{assetName}.asset";
+                string fullPath = MakeAssetPath(path, assetName);
                 asset = ScriptableObject.CreateInstance<T>();
                 AssetDatabase.CreateAsset(asset, fullPath);
             }
@@ -250,7 +287,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
         private static void RemoveAsset(string path, string assetName)
         {
-            AssetDatabase.DeleteAsset($"{path}/{assetName}.asset");
+            AssetDatabase.DeleteAsset(MakeAssetPath(path, assetName));
         }
 
         private static void GetElementsFromGraphView()
@@ -276,15 +313,15 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
         private static void CreateStaticFolders()
         {
-            CreateFolder("Assets/Editor", "DialogueSystem");
-            CreateFolder("Assets/Editor/DialogueSystem", "Graphs");
-            CreateFolder("Assets", "DialogueSystem");
-            CreateFolder("Assets/DialogueSystem", "Dialogues");
+            CreateFolder("Assets", "Editor");
+            CreateFolder(EditorFolderPath, DialogueFolderName);
+            CreateFolder("Assets", DialogueFolderName);
+            CreateFolder("Assets", DialogueFolderName);
 
-            CreateFolder("Assets/DialogueSystem/Dialogues", GraphFileName);
-            CreateFolder(ContainerFolderPath, "Global");
+            CreateFolder(DialoguesSOPath, GraphFileName);
+            CreateFolder(ContainerFolderPath, GlobalFolderName);
             CreateFolder(ContainerFolderPath, "Groups");
-            CreateFolder($"{ContainerFolderPath}/Global", "Dialogues");
+            CreateFolder($"{ContainerFolderPath}/{GlobalFolderName}", DialogueFolderName);
         }
 
         private static void CreateFolder(string path, string folderName)
@@ -311,27 +348,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
         #endregion
 
-        #region Loading
-        public static void Load()
-        {
-            string path = "Assets/Editor/DialogueSystem/Graphs";
-            DialogueGraphSaveDataSO graphData = LoadAsset<DialogueGraphSaveDataSO>(path, GraphFileName);
-            if (graphData == null)
-            {
-                EditorUtility.DisplayDialog
-                (
-                    "Couldn't load the file",
-                    $"The file at the following path could not be found:\n\n{path}/{GraphFileName}",
-                    "Ok"
-                );
-                return;
-            }
-
-            DialogueGraphWindow.UpdateFileName(graphData.FileName);
-            LoadGroups(graphData.Groups);
-            LoadNodes(graphData.Nodes);
-            LoadNodesConnections();
-        }
+        #region Loading helpers
 
         private static void LoadNodesConnections()
         {
@@ -390,12 +407,12 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
         private static T LoadAsset<T>(string path, string assetName) where T : ScriptableObject
         {
-            string fullPath = $"{path}/{assetName}.asset";
+            string fullPath = MakeAssetPath(path, assetName);
             return AssetDatabase.LoadAssetAtPath<T>(fullPath);
         }
         #endregion
 
-
+        #region Generic
         private static List<DialogueChoiceSaveData> CloneNodeChoices(List<DialogueChoiceSaveData> nodeChoices)
         {
             List<DialogueChoiceSaveData> choices = new List<DialogueChoiceSaveData>();
@@ -411,5 +428,27 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
             return choices;
         }
+
+        private static void ClearCachedData()
+        {
+            GraphFileName = null;
+            ContainerFolderPath = null;
+            DialogueGraphView = null;
+
+            Groups = null;
+            Nodes = null;
+
+            CreatedDialogueGroup = null;
+            CreatedDialogues = null;
+
+            LoadedGroups = null;
+            LoadedNodes = null;
+        }
+
+        private static string MakeAssetPath(string path, string assetName)
+        {
+            return $"{path}/{assetName}.asset";
+        }
+        #endregion
     }
 }

@@ -21,20 +21,8 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
         private SerializableDictionary<string, DialogueGroupErrorData> Groups;
         private SerializableDictionary<Group, SerializableDictionary<string, DialogueNodeErrorData>> GroupedNodes;
 
-        private int RepeatedNameErrorCountInternal;
-        public int RepeatedNameErrorCount {
-            get { return RepeatedNameErrorCountInternal; }
-            set 
-            {
-                RepeatedNameErrorCountInternal = value;
-                if (RepeatedNameErrorCountInternal == 0)
-                    DialogueGraphWindow.SetSavingEnabled(true);
-
-                if (RepeatedNameErrorCountInternal == 1)
-                    DialogueGraphWindow.SetSavingEnabled(false);
-            }
-        }
-
+        public int RepeatedNameErrorCount { get; set; }
+        public int EmptyDialogueNames { get; set; }
         public object DialogueChoiceSaveData { get; private set; }
 
         public DialogueGraphView(DialogueGraphWindow dialogueGraphWindow)
@@ -158,7 +146,8 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             if (data.Nodes.Count == 2)
             {
                 ++RepeatedNameErrorCount;
-                data.Nodes[0].SetErrorStyle(errorColor);
+                if(!string.IsNullOrEmpty(data.Nodes[0].GetDialogueNameTextFieldValue()))
+                    data.Nodes[0].SetErrorStyle(errorColor);
             }
         }
 
@@ -166,13 +155,15 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
         {
             string nodeName = node.DialogueName.ToLower();
             UngroupedNodes[nodeName].Nodes.Remove(node);
-            node.ResetStyle();
+            if (!string.IsNullOrEmpty(node.GetDialogueNameTextFieldValue()))
+                node.ResetStyle();
 
             var nodeList = UngroupedNodes[nodeName].Nodes;
             if (nodeList.Count == 1)
             {
                 --RepeatedNameErrorCount;
-                nodeList[0].ResetStyle();                
+                if (!string.IsNullOrEmpty(nodeList[0].GetDialogueNameTextFieldValue()))
+                    nodeList[0].ResetStyle();                
             }
             else if (nodeList.Count == 0)
                 UngroupedNodes.Remove(nodeName);
@@ -202,7 +193,8 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
 
             if (groupedNodesList.Count == 2)
             {
-                groupedNodesList[0].SetErrorStyle(errorColor);
+                if (!string.IsNullOrEmpty(groupedNodesList[0].GetDialogueNameTextFieldValue()))
+                    groupedNodesList[0].SetErrorStyle(errorColor);
                 ++RepeatedNameErrorCount;
             }
         }
@@ -214,12 +206,14 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             List<DialogueNode> groupedNodesList = GroupedNodes[group][nodeName].Nodes;
 
             groupedNodesList.Remove(node);
-            node.ResetStyle();
+            if(string.IsNullOrEmpty(node.GetDialogueNameTextFieldValue()))
+                node.ResetStyle();
 
             if (groupedNodesList.Count == 1)
             {
                 --RepeatedNameErrorCount;
-                groupedNodesList[0].ResetStyle();
+                if (!string.IsNullOrEmpty(groupedNodesList[0].GetDialogueNameTextFieldValue()))
+                    groupedNodesList[0].ResetStyle();
             }
             else if (groupedNodesList.Count == 0)
             {
@@ -298,6 +292,31 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             }
 
             return group;
+        }
+
+        public bool HasDuplicateName(DialogueNode node, out Color color)
+        {
+            string name = node.DialogueName.ToLower();
+
+            if (node.Group != null)
+            {
+                var errorData = GroupedNodes[node.Group][name];
+                if (errorData.Nodes.Count > 1)
+                {
+                    color = errorData.ErrorData.Color;
+                    return true;
+                }
+                color = default(Color);
+                return false;
+            }
+
+            if (UngroupedNodes[name].Nodes.Count > 1)
+            {
+                color = UngroupedNodes[name].ErrorData.Color;
+                return true;
+            }
+            color = default(Color);
+            return false;
         }
 
         private void AddStyles()
@@ -517,6 +536,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             UngroupedNodes.Clear();
 
             RepeatedNameErrorCount = 0;
+            EmptyDialogueNames = 0;
         }
     }
 }

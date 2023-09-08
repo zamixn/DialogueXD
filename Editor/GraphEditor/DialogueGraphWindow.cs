@@ -19,7 +19,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
         private Button MiniMapButton;
         private static TextField FileNameTextField;
 
-        private DialogueGraphView GraphView;
+        private DialogueGraphView DialogueGraphView;
 
         [MenuItem("Tools/Dialogue Graph")]
         public static void Open()
@@ -42,11 +42,11 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
 
         private void AddGraphView()
         {
-            GraphView = new DialogueGraphView(this);
+            DialogueGraphView = new DialogueGraphView(this);
 
-            GraphView.StretchToParentSize();
+            DialogueGraphView.StretchToParentSize();
 
-            rootVisualElement.Add(GraphView);
+            rootVisualElement.Add(DialogueGraphView);
         }
 
         private void AddToolbar()
@@ -59,7 +59,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             {
                 FileNameTextField.value = callback.newValue.RemoveWhitespaces().RemoveSpecialCharacters();
             });
-            SaveButton = DialogueUIElementUtilities.CreateButton("Save", Save);
+            SaveButton = DialogueUIElementUtilities.CreateButton("Save", TrySave);
 
             Button clearButton = DialogueUIElementUtilities.CreateButton("Clear", Clear);
             Button resetButton = DialogueUIElementUtilities.CreateButton("Reset", ResetGraph);
@@ -88,7 +88,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             FileNameTextField.value = newFileName;
         }
 
-        private void Save()
+        private void TrySave()
         {
             if (string.IsNullOrEmpty(FileNameTextField.value))
             {
@@ -100,13 +100,33 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
                 );
                 return;
             }
-            DialogueIOUtility.Initialize(GraphView, FileNameTextField.value);
+            if (DialogueGraphView.EmptyDialogueNames > 0)
+            {
+                EditorUtility.DisplayDialog
+                (
+                    "Cannot save",
+                    "Some dialogue nodes have empty names. They are marked with colors",
+                    "Ok"
+                );
+                return;
+            }
+            if (DialogueGraphView.RepeatedNameErrorCount > 0)
+            {
+                EditorUtility.DisplayDialog
+                (
+                    "Cannot save",
+                    "Some dialogue nodes have duplicate names.\nDuplicates are not allowed and are marked with colors.",
+                    "Ok"
+                );
+                return;
+            }
+            DialogueIOUtility.Initialize(DialogueGraphView, FileNameTextField.value);
             DialogueIOUtility.Save();
         }
 
         private void Clear()
         {
-            GraphView.ClearGraph();
+            DialogueGraphView.ClearGraph();
         }
 
         private void ResetGraph()
@@ -130,13 +150,13 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             }
 
             Clear();
-            DialogueIOUtility.Initialize(GraphView, Path.GetFileNameWithoutExtension(path));
+            DialogueIOUtility.Initialize(DialogueGraphView, Path.GetFileNameWithoutExtension(path));
             DialogueIOUtility.Load();
         }
 
         private void ToggleMiniMap()
         {
-            GraphView.ToggleMiniMap();
+            DialogueGraphView.ToggleMiniMap();
             MiniMapButton.ToggleInClassList(".d-toolbar__button__selected");
         }
     }

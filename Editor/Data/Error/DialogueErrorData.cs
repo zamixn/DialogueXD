@@ -1,3 +1,4 @@
+using FrameworksXD.DialogueXD.Editor.Utilities;
 using UnityEngine;
 
 namespace FrameworksXD.DialogueXD.Editor.Error
@@ -8,17 +9,7 @@ namespace FrameworksXD.DialogueXD.Editor.Error
 
         public DialogueErrorData()
         {
-            GenerateRandomColor();
-        }
-
-        private void GenerateRandomColor()
-        {
-            Color = new Color32(
-                (byte)Random.Range(165, 256),
-                (byte)Random.Range(150, 256),
-                (byte)Random.Range(150, 256),
-                255
-            );
+            Color = ColorUtilities.RandomErrorColor();
         }
     }
 }

@@ -23,6 +23,8 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor.Elements
         private Color DefaultTitleBackgroundColor;
         public DialogueGroup Group { get; set; }
 
+        private TextField DialogueNameTextField;
+
 
         public virtual void Initialize(string nodeName, DialogueGraphView dialogueGraphView, Vector2 position)
         {
@@ -43,38 +45,50 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor.Elements
 
         public virtual void Draw()
         {
-            TextField dialogueNameTextField = DialogueUIElementUtilities.CreateTextField(DialogueName, null, callback => 
+            DialogueNameTextField = DialogueUIElementUtilities.CreateTextField(DialogueName, null, callback => 
             {
                 TextField target = (TextField)callback.target;
                 target.value = callback.newValue.RemoveWhitespaces().RemoveSpecialCharacters();
 
-                if (string.IsNullOrEmpty(target.value))
-                {
-                    if (!string.IsNullOrEmpty(DialogueName))
-                        ++DialogueGraphView.RepeatedNameErrorCount;
-                }
-                else
-                {
-                    if (string.IsNullOrEmpty(DialogueName))
-                        --DialogueGraphView.RepeatedNameErrorCount;
-                }
+
+                bool wasTitleEmpty = string.IsNullOrEmpty(DialogueName); 
 
                 if (Group == null)
                 {
                     DialogueGraphView.RemoveUngroupedNode(this);
                     DialogueName = target.value;
                     DialogueGraphView.AddUngroupedNode(this);
-                    return;
+                }
+                else
+                {
+                    DialogueGroup currentGroup = Group;
+                    DialogueGraphView.RemoveGroupedNode(this, currentGroup);
+                    DialogueName = target.value;
+                    DialogueGraphView.AddGroupedNode(this, currentGroup);
                 }
 
-                DialogueGroup currentGroup = Group;
-                DialogueGraphView.RemoveGroupedNode(this, currentGroup);
-                DialogueName = target.value;
-                DialogueGraphView.AddGroupedNode(this, currentGroup);
-
+                if (string.IsNullOrEmpty(target.value))
+                {
+                    if (!wasTitleEmpty)
+                    {
+                        ++DialogueGraphView.EmptyDialogueNames;
+                        SetErrorStyle(ColorUtilities.RandomErrorColor());
+                    }
+                }
+                else
+                {
+                    if (wasTitleEmpty)
+                    {
+                        --DialogueGraphView.EmptyDialogueNames;
+                        if (DialogueGraphView.HasDuplicateName(this, out Color c))
+                            SetErrorStyle(c);
+                        else
+                            ResetStyle();
+                    }
+                }
             });
-            titleContainer.Insert(0, dialogueNameTextField);
-            dialogueNameTextField.AddClasses("d-node__textfield", "d-node__filename-textfield", "d-node__textfield__hidden");
+            titleContainer.Insert(0, DialogueNameTextField);
+            DialogueNameTextField.AddClasses("d-node__textfield", "d-node__filename-textfield", "d-node__textfield__hidden");
 
             Port inputPort = this.CreatePort("Previous Conenction", Orientation.Horizontal, Direction.Input, Port.Capacity.Multi);
             inputContainer.Add(inputPort);
@@ -135,6 +149,8 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor.Elements
             titleContainer.style.borderTopColor = DefaultTitleBackgroundColor;
             titleContainer.style.borderTopWidth = 0f;
         }
+
+        public string GetDialogueNameTextFieldValue() => DialogueNameTextField.value;
 
     }
 }

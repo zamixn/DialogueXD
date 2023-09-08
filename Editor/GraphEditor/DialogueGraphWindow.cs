@@ -66,12 +66,16 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
 
             MiniMapButton = DialogueUIElementUtilities.CreateButton("MiniMap", ToggleMiniMap);
 
+            ToolbarSpacer spacer = new ToolbarSpacer();
+            spacer.flex = true;
+
             toolbar.Add(FileNameTextField);
             toolbar.Add(SaveButton);
+            toolbar.Add(MiniMapButton);
+            toolbar.Add(spacer);
             toolbar.Add(clearButton);
             toolbar.Add(resetButton);
             toolbar.Add(loadButton);
-            toolbar.Add(MiniMapButton);
 
             toolbar.AddStyleSheets("DialogueGraphToolbarStyles.uss");
 

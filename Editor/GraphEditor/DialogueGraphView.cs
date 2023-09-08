@@ -20,6 +20,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
         private SerializableDictionary<string, DialogueNodeErrorData> UngroupedNodes;
         private SerializableDictionary<string, DialogueGroupErrorData> Groups;
         private SerializableDictionary<Group, SerializableDictionary<string, DialogueNodeErrorData>> GroupedNodes;
+        private List<StickyNote> StickyNotes;
 
         public int RepeatedNameErrorCount { get; set; }
         public int EmptyDialogueNames { get; set; }
@@ -31,6 +32,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             UngroupedNodes = new SerializableDictionary<string, DialogueNodeErrorData>();
             Groups = new SerializableDictionary<string, DialogueGroupErrorData>();
             GroupedNodes = new SerializableDictionary<Group, SerializableDictionary<string, DialogueNodeErrorData>>();
+            StickyNotes = new List<StickyNote>();
 
             AddManipulators();
             AddSearchWindow();
@@ -86,6 +88,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             this.AddManipulator(CreateNodeContextualMenu("Add Node (Single Choice)", DialogueType.SingleChoice));
             this.AddManipulator(CreateNodeContextualMenu("Add Node (Multiple Choice)", DialogueType.MultipleChoice));
             this.AddManipulator(CreateGroupContextualMenu());
+            this.AddManipulator(CreateStickyNoteContextualMenu());
         }
 
         private IManipulator CreateNodeContextualMenu(string actionTitle, DialogueType dialogueType)
@@ -294,6 +297,29 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             return group;
         }
 
+        private IManipulator CreateStickyNoteContextualMenu()
+        {
+            ContextualMenuManipulator contextualMenuManipulator = new ContextualMenuManipulator(
+                menuEvent => menuEvent.menu.AppendAction("Add Comment",
+                    actionEvent => CreateStickyNote("Title", "Comment...", GetLocalMousePosition(actionEvent.eventInfo.localMousePosition))
+                )
+            );
+
+            return contextualMenuManipulator;
+        }
+        public StickyNote CreateStickyNote(string title, string text, Vector2 position)
+        {
+            StickyNote stickyNote = new StickyNote(position)
+            {
+                title = title,
+                contents = text
+            };
+
+            AddElement(stickyNote);
+            StickyNotes.Add(stickyNote);
+            return stickyNote;
+        }
+
         public bool HasDuplicateName(DialogueNode node, out Color color)
         {
             string name = node.DialogueName.ToLower();
@@ -380,9 +406,11 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             {
                 Type groupType = typeof(DialogueGroup);
                 Type edgeType = typeof(Edge);
+                Type stickyNoteType = typeof(StickyNote);
                 List<DialogueGroup> groupsToDelete = new List<DialogueGroup>();
                 List<Edge> edgesToDelete = new List<Edge>();
                 List<DialogueNode> nodesToDelete = new List<DialogueNode>();
+                List<StickyNote> stickyNotesToDelete = new List<StickyNote>();
                 foreach (GraphElement element in selection)
                 {
                     if (element is DialogueNode node)
@@ -392,6 +420,12 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
                     {
                         Edge edge = (Edge)element;
                         edgesToDelete.Add(edge);
+                        continue;
+                    }
+
+                    if (element.GetType() == stickyNoteType)
+                    {
+                        stickyNotesToDelete.Add((StickyNote)element);
                         continue;
                     }
 
@@ -431,6 +465,8 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
                     node.DisconnectAllPorts();
                     RemoveElement(node);
                 }
+
+                DeleteElements(stickyNotesToDelete);
             };
         }
 
@@ -534,6 +570,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             Groups.Clear();
             GroupedNodes.Clear();
             UngroupedNodes.Clear();
+            StickyNotes.Clear();
 
             RepeatedNameErrorCount = 0;
             EmptyDialogueNames = 0;

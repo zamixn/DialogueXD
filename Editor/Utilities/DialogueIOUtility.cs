@@ -31,6 +31,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
         private static DialogueGraphView DialogueGraphView;
         private static List<DialogueGroup> Groups;
         private static List<DialogueNode> Nodes;
+        private static List<StickyNote> StickyNotes;
 
         private static Dictionary<string, DialogueGroupSO> CreatedDialogueGroup;
         private static Dictionary<string, DialogueSO> CreatedDialogues;
@@ -46,6 +47,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
             Groups = new List<DialogueGroup>();
             Nodes = new List<DialogueNode>();
+            StickyNotes = new List<StickyNote>();
 
             CreatedDialogueGroup = new Dictionary<string, DialogueGroupSO>();
             CreatedDialogues = new Dictionary<string, DialogueSO>();
@@ -68,6 +70,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
             SaveGroups(graphData, dialogueContainer);
             SaveNodes(graphData, dialogueContainer);
+            SaveStickyNotes(graphData);
 
             SaveAsset(graphData);
             SaveAsset(dialogueContainer);
@@ -94,6 +97,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             LoadGroups(graphData.Groups);
             LoadNodes(graphData.Nodes);
             LoadNodesConnections();
+            LoadStickyNotes(graphData.StickyNotes);
 
             ClearCachedData();
         }
@@ -273,6 +277,20 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             graphData.Groups.Add(groupData);
         }
 
+        private static void SaveStickyNotes(DialogueGraphSaveDataSO graphData)
+        {
+            foreach (StickyNote stickyNote in StickyNotes)
+            {
+                DialogueStickyNoteSaveData data = new DialogueStickyNoteSaveData()
+                {
+                    Title = stickyNote.title,
+                    Content = stickyNote.contents,
+                    Position = stickyNote.GetPosition().position
+                };
+                graphData.StickyNotes.Add(data);
+            }
+        }
+
         private static T CreateAsset<T>(string path, string assetName) where T : ScriptableObject
         {
             T asset = LoadAsset<T>(path, assetName);
@@ -293,6 +311,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
         private static void GetElementsFromGraphView()
         {
             Type groupType = typeof(DialogueGroup);
+            Type stickyNoteType = typeof(StickyNote);
             DialogueGraphView.graphElements.ForEach(graphElement => 
             {
                 if (graphElement is DialogueNode node)
@@ -306,6 +325,12 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
                     DialogueGroup group = (DialogueGroup)graphElement;
                     Groups.Add(group);
                     return;
+                }
+
+                if (graphElement.GetType() == stickyNoteType)
+                {
+                    StickyNote stickyNote = (StickyNote)graphElement;
+                    StickyNotes.Add(stickyNote); 
                 }
 
             });
@@ -410,6 +435,21 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             string fullPath = MakeAssetPath(path, assetName);
             return AssetDatabase.LoadAssetAtPath<T>(fullPath);
         }
+
+
+        private static void LoadStickyNotes(List<DialogueStickyNoteSaveData> stickyNotesData)
+        {
+            foreach (var stickyNoteData in stickyNotesData)
+            {
+                DialogueGraphView.CreateStickyNote
+                (
+                    stickyNoteData.Title, 
+                    stickyNoteData.Content, 
+                    stickyNoteData.Position
+                );
+            }
+        }
+
         #endregion
 
         #region Generic
@@ -437,6 +477,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
             Groups = null;
             Nodes = null;
+            StickyNotes = null;
 
             CreatedDialogueGroup = null;
             CreatedDialogues = null;

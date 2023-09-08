@@ -1,0 +1,62 @@
+
+Toolbar
+{
+	background-color: var(--d-colors-window-dar-grey-1);
+	height: 35px;
+
+}
+
+TextField
+{
+	padding: 4px;
+}
+
+
+Button
+{
+	background-color: var(--d-colors-window-darkgrey-5);
+	border-color: var(--d-colors-window-darkgrey-1);
+	margin: 4px;
+	max-height: 25px;
+}
+
+Button:hover
+{
+	background-color: var(--d-colors-window-darkgrey-2);
+}
+
+Button:active
+{
+	background-color: var(--d-colors-window-darkgrey-3);
+	color: var(--d-colors-window-yellow);
+}
+
+.unity-text-field__label
+{
+	padding: 4px;
+}
+
+TextField:focus > .unity-text-field__label
+{
+	color: var(--d-colors-window-yellow);
+}
+
+.unity-text-field__input
+{
+	background-color: var(--d-colors-window-darkgrey-1);
+	border-color: var(--d-colors-window-darkgrey-6);
+	border-radius: var(--d-metrics-default-border-radius);
+	max-height: 25px;
+	min-width: 120px;
+	padding-left: 6px;
+}
+
+.unity-text-field__input:focus
+{
+	color: var(--d-colors-window-yellow);
+}
+
+.d-toolbar__button__selected
+{
+	color: var(--d-colors-window-yellow);
+}

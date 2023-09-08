@@ -285,7 +285,9 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
                 {
                     Title = stickyNote.title,
                     Content = stickyNote.contents,
-                    Position = stickyNote.GetPosition().position
+                    Position = stickyNote.GetPosition().position,
+                    Theme = stickyNote.theme,
+                    FontSize = stickyNote.fontSize
                 };
                 graphData.StickyNotes.Add(data);
             }
@@ -445,7 +447,9 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
                 (
                     stickyNoteData.Title, 
                     stickyNoteData.Content, 
-                    stickyNoteData.Position
+                    stickyNoteData.Position,
+                    stickyNoteData.Theme,
+                    stickyNoteData.FontSize
                 );
             }
         }

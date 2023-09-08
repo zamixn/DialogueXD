@@ -307,12 +307,14 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
 
             return contextualMenuManipulator;
         }
-        public StickyNote CreateStickyNote(string title, string text, Vector2 position)
+        public StickyNote CreateStickyNote(string title, string text, Vector2 position, StickyNoteTheme theme = StickyNoteTheme.Black, StickyNoteFontSize fontSize = StickyNoteFontSize.Small)
         {
             StickyNote stickyNote = new StickyNote(position)
             {
                 title = title,
-                contents = text
+                contents = text,
+                fontSize = fontSize,
+                theme = theme,
             };
 
             AddElement(stickyNote);

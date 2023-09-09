@@ -33,6 +33,13 @@ namespace FrameworksXD.DialogueXD.ScriptableObjects
             return null;
         }
 
+        public DialogueGroupSO GetDialogueGroup(string groupID)
+        {
+            if (DialogueGroups.ContainsKey(groupID))
+                return DialogueGroups[groupID];
+            return null;
+        }
+
         public List<DialogueSO> GetAllDialogues()
         {
             List<DialogueSO> dialogues = new List<DialogueSO>();
@@ -44,6 +51,34 @@ namespace FrameworksXD.DialogueXD.ScriptableObjects
                     dialogues.Add(dialogue);
 
             return dialogues;
+        }
+        public List<DialogueSO> GetAllAvailableDialogues(string groupID = null)
+        {
+            if (string.IsNullOrEmpty(groupID))
+            {
+                List<DialogueSO> dialogues = new List<DialogueSO>();
+                foreach (var dialogue in UngroupedDialogues)
+                    dialogues.Add(dialogue.Value);
+                return dialogues;
+            }
+
+            return GetAllDialoguesInGroup(groupID);
+        }
+        public List<DialogueSO> GetAllDialoguesInGroup(string groupID)
+        {
+            if (DialogueGroups.ContainsKey(groupID))
+                return DialogueGroups[groupID].GetAllDialogues();
+
+            Debug.LogError($"Group not found in DialogueGraph: {FileName}");
+            return null;
+        }
+
+        public List<DialogueGroupSO> GetAllDialogueGroups()
+        {
+            List<DialogueGroupSO> dialogueGroups = new List<DialogueGroupSO>();
+            foreach (var group in DialogueGroups)
+                dialogueGroups.Add(group.Value);
+            return dialogueGroups;
         }
     }
 }

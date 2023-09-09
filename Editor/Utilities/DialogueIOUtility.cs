@@ -183,14 +183,16 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             if (node.Group != null)
             {
                 dialogue = CreateAsset<DialogueSO>(GetGroupDialoguesFolderPath(node.Group.title), node.DialogueName);
-                dialogueContainer.DialogueGroups.AddItem(CreatedDialogueGroup[node.Group.Id], dialogue);
+                string groupID = node.Group.Id;
+                DialogueGroupSO groupSO = CreatedDialogueGroup[groupID];
+                groupSO.Dialogues.Add(node.Id, dialogue);
             }
             else
             {
                 dialogue = CreateAsset<DialogueSO>(GetGlobalDialoguesPath(), node.DialogueName);
-                dialogueContainer.UngroupedDialogues.Add(dialogue);
+                dialogueContainer.UngroupedDialogues.Add(node.Id, dialogue);
             }
-            dialogue.Initialize(node.DialogueName, node.Text, ConvertNodeChoicesToDialogueChoices(node.Choices), node.DialogueType, node.IsStartingNode());
+            dialogue.Initialize(node.Id, node.DialogueName, node.Text, ConvertNodeChoicesToDialogueChoices(node.Choices), node.DialogueType, node.IsStartingNode());
             CreatedDialogues.Add(node.Id, dialogue);
             SaveAsset(dialogue);
         }
@@ -259,9 +261,9 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             CreateFolder(GetGroupFolderPath(groupName), DialogueFolderName);
 
             DialogueGroupSO dialogueGroup = CreateAsset<DialogueGroupSO>(GetGroupFolderPath(groupName), groupName);
-            dialogueGroup.Initialize(groupName);
+            dialogueGroup.Initialize(group.Id, groupName);
             CreatedDialogueGroup.Add(group.Id, dialogueGroup);
-            dialogueContainer.DialogueGroups.Add(dialogueGroup, new List<DialogueSO>());
+            dialogueContainer.DialogueGroups.Add(dialogueGroup.Id, dialogueGroup);
 
             SaveAsset(dialogueGroup);
         }

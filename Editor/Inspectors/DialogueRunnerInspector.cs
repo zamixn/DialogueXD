@@ -76,6 +76,10 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
             var prevGroupId = DialogueGroupIDProperty.stringValue;
             if (prevContainerRef != DialogueContainerProperty.objectReferenceValue)
             {
+                DialogueGroupIDProperty.stringValue = "";
+                StartingDialogueIDProperty.stringValue = "";
+                SelectedDialogueIndex = 0;
+                SelectedDialogueGroupIndex = 0;
                 UpdateAvailableDialogueGroups();
                 UpdateAvailableDialogues();
             }
@@ -103,8 +107,8 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
             DialogueGroupSO selectedGroup = dialogueContainer.GetDialogueGroup(DialogueGroupIDProperty.stringValue);
             AvailableDialogueGroups = new Dictionary<string, DialogueGroupSO>(allGroups.Count);
             AvailableDialogueGroupNames = new string[allGroups.Count + 1];
-            AvailableDialogueGroups.Add("No Group", null);
-            AvailableDialogueGroupNames[0] = "No Group";
+            AvailableDialogueGroups.Add("None", null);
+            AvailableDialogueGroupNames[0] = "None";
 
             for (int i = 1; i <= allGroups.Count; i++)
             {
@@ -125,14 +129,17 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
 
             DialogueSO selectedDialogue = dialogueContainer.GetDialogue(StartingDialogueIDProperty.stringValue, DialogueGroupIDProperty.stringValue);
             string groupID = DialogueGroupIDProperty.stringValue;
-            List<DialogueSO> allDialogues = dialogueContainer.GetAllAvailableDialogues(groupID);
-            List<DialogueSO> startingDialogues = allDialogues.Where(d => d.IsStartingDialogue).ToList();
+            List<DialogueSO> availableDialogues = dialogueContainer.GetAllAvailableDialogues(groupID);
+            availableDialogues = availableDialogues.Where(d => d.IsStartingDialogue).ToList();
 
-            AvailableDialogues = new Dictionary<string, DialogueSO>(startingDialogues.Count);
-            AvailableDialogueNames = new string[startingDialogues.Count];
-            for (int i = 0; i < startingDialogues.Count; i++)
+            AvailableDialogues = new Dictionary<string, DialogueSO>(availableDialogues.Count + 1);
+            AvailableDialogueNames = new string[availableDialogues.Count + 1];
+            AvailableDialogues.Add("None", null);
+            AvailableDialogueNames[0] = "None";
+
+            for (int i = 1; i <= availableDialogues.Count; i++)
             {
-                var dialogue = startingDialogues[i];
+                var dialogue = availableDialogues[i - 1];
                 AvailableDialogues.Add(dialogue.DialogueName, dialogue);
                 AvailableDialogueNames[i] = dialogue.DialogueName;
                 if (selectedDialogue != null && selectedDialogue.Id == dialogue.Id)

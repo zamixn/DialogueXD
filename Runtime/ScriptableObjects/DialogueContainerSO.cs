@@ -32,5 +32,18 @@ namespace FrameworksXD.DialogueXD.ScriptableObjects
 
             return null;
         }
+
+        public List<DialogueSO> GetAllDialogues()
+        {
+            List<DialogueSO> dialogues = new List<DialogueSO>();
+            foreach (var dialogue in UngroupedDialogues)
+                dialogues.Add(dialogue.Value);
+
+            foreach (var group in DialogueGroups)
+                foreach (var dialogue in group.Value.GetAllDialogues())
+                    dialogues.Add(dialogue);
+
+            return dialogues;
+        }
     }
 }

@@ -1,4 +1,5 @@
 using FrameworksXD.DialogueXD.Utilities;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FrameworksXD.DialogueXD.ScriptableObjects
@@ -22,6 +23,14 @@ namespace FrameworksXD.DialogueXD.ScriptableObjects
             if (Dialogues.ContainsKey(id))
                 return Dialogues[id];
             return null;
+        }
+
+        public List<DialogueSO> GetAllDialogues()
+        {
+            List<DialogueSO> dialogues = new List<DialogueSO>();
+            foreach (var d in Dialogues)
+                dialogues.Add(d.Value);
+            return dialogues;
         }
     }
 }

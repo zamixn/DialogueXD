@@ -100,7 +100,7 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
             DialogueContainerSO dialogueContainer = (DialogueContainerSO)DialogueContainerProperty.objectReferenceValue;
             List<DialogueGroupSO> allGroups = dialogueContainer.GetAllDialogueGroups();
 
-            DialogueGroupSO selectedGroup = dialogueContainer.GetDialogueGroup(StartingDialogueIDProperty.stringValue);
+            DialogueGroupSO selectedGroup = dialogueContainer.GetDialogueGroup(DialogueGroupIDProperty.stringValue);
             AvailableDialogueGroups = new Dictionary<string, DialogueGroupSO>(allGroups.Count);
             AvailableDialogueGroupNames = new string[allGroups.Count + 1];
             AvailableDialogueGroups.Add("No Group", null);
@@ -123,7 +123,7 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
         {
             DialogueContainerSO dialogueContainer = (DialogueContainerSO)DialogueContainerProperty.objectReferenceValue;
 
-            DialogueSO selectedDialogue = dialogueContainer.GetDialogue(StartingDialogueIDProperty.stringValue);
+            DialogueSO selectedDialogue = dialogueContainer.GetDialogue(StartingDialogueIDProperty.stringValue, DialogueGroupIDProperty.stringValue);
             string groupID = DialogueGroupIDProperty.stringValue;
             List<DialogueSO> allDialogues = dialogueContainer.GetAllAvailableDialogues(groupID);
             List<DialogueSO> startingDialogues = allDialogues.Where(d => d.IsStartingDialogue).ToList();

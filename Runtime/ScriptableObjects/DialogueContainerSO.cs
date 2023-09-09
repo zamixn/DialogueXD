@@ -28,7 +28,7 @@ namespace FrameworksXD.DialogueXD.ScriptableObjects
             }
 
             if (DialogueGroups.ContainsKey(groupID))
-                DialogueGroups[groupID].GetDialogue(dialogueId);
+                return DialogueGroups[groupID].GetDialogue(dialogueId);
 
             return null;
         }

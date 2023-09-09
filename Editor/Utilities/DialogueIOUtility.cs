@@ -76,6 +76,8 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             SaveAsset(dialogueContainer);
             SaveGroupsToAssets();
 
+            CommitAssetsToFiles();
+
             ClearCachedData();
         }
 
@@ -378,6 +380,10 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
         private static void SaveAsset(UnityEngine.Object asset)
         {
             EditorUtility.SetDirty(asset);
+        }
+
+        private static void CommitAssetsToFiles()
+        {
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }

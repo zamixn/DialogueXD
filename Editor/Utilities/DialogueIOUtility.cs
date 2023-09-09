@@ -74,6 +74,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
             SaveAsset(graphData);
             SaveAsset(dialogueContainer);
+            SaveGroupsToAssets();
 
             ClearCachedData();
         }
@@ -264,8 +265,14 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             dialogueGroup.Initialize(group.Id, groupName);
             CreatedDialogueGroup.Add(group.Id, dialogueGroup);
             dialogueContainer.DialogueGroups.Add(dialogueGroup.Id, dialogueGroup);
+        }
 
-            SaveAsset(dialogueGroup);
+        private static void SaveGroupsToAssets()
+        {
+            foreach (var group in CreatedDialogueGroup)
+            {
+                SaveAsset(group.Value);
+            }
         }
 
         private static void SaveGroupToGraph(DialogueGroup group, DialogueGraphSaveDataSO graphData)

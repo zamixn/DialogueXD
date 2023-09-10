@@ -35,16 +35,10 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
         private void OnEnable()
         {
             DialogueGraphSettings = new DialogueGraphSettingsData();
-            Debug.LogError("OnEnable");
             AddGraphView();
             AddToolbar();
             AddStyles();
             TryRefreshingSettingsWondow();
-        }
-
-        private void OnDisable()
-        {
-            Debug.LogError("OnDisEnable");
         }
 
 

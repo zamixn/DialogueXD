@@ -93,45 +93,6 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             ClearCachedData();
         }
 
-        private static void SaveSpeakersToAssets()
-        {
-            foreach (var speaker in CreatedSpeakers)
-            {
-                SaveAsset(speaker.Value);
-            }
-        }
-
-        private static void SaveDialogueSpeakers(DialogueGraphSaveDataSO graphData)
-        {
-            var speakers = graphData.Speakers;
-
-            var path = GetDialogueSpeakersPath();
-            List<string> currentSpeakers = new List<string>();
-            foreach (var speaker in speakers)
-            {
-                if (string.IsNullOrEmpty(speaker.Id))
-                    continue;
-                DialogueSpeakerSO speakerSO = CreateAsset<DialogueSpeakerSO>(path, speaker.Name);
-                speakerSO.Initialize(speaker.Id, speaker.Name);
-                CreatedSpeakers.Add(speaker.Id, speakerSO);
-                currentSpeakers.Add(speaker.Name);
-            }
-
-            UpdateOldDialogueSpeakers(currentSpeakers, graphData);
-        }
-        private static void UpdateOldDialogueSpeakers(List<string> currentDialogueSpeakers, DialogueGraphSaveDataSO graphData)
-        {
-            if (graphData.OldSpeakerNames != null && graphData.OldSpeakerNames.Count != 0)
-            {
-                List<string> speakersToRemove = graphData.OldSpeakerNames.Except(currentDialogueSpeakers).ToList();
-                foreach (string speakerToRemove in speakersToRemove)
-                {
-                    RemoveAsset(GetDialogueSpeakersPath(), speakerToRemove);
-                }
-            }
-            graphData.OldSpeakerNames = new List<string>(currentDialogueSpeakers);
-        }
-
         public static void Load()
         {
             string path = GraphsFolder;
@@ -367,6 +328,46 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
                 speakerData.Add(new DialogueSpeakerData(speaker.Name) { Id = speaker.Id });
             }
             graphData.Speakers = speakerData;
+        }
+
+        private static void UpdateOldDialogueSpeakers(List<string> currentDialogueSpeakers, DialogueGraphSaveDataSO graphData)
+        {
+            if (graphData.OldSpeakerNames != null && graphData.OldSpeakerNames.Count != 0)
+            {
+                List<string> speakersToRemove = graphData.OldSpeakerNames.Except(currentDialogueSpeakers).ToList();
+                foreach (string speakerToRemove in speakersToRemove)
+                {
+                    RemoveAsset(GetDialogueSpeakersPath(), speakerToRemove);
+                }
+            }
+            graphData.OldSpeakerNames = new List<string>(currentDialogueSpeakers);
+        }
+
+        private static void SaveDialogueSpeakers(DialogueGraphSaveDataSO graphData)
+        {
+            var speakers = graphData.Speakers;
+
+            var path = GetDialogueSpeakersPath();
+            List<string> currentSpeakers = new List<string>();
+            foreach (var speaker in speakers)
+            {
+                if (string.IsNullOrEmpty(speaker.Id))
+                    continue;
+                DialogueSpeakerSO speakerSO = CreateAsset<DialogueSpeakerSO>(path, speaker.Name);
+                speakerSO.Initialize(speaker.Id, speaker.Name);
+                CreatedSpeakers.Add(speaker.Id, speakerSO);
+                currentSpeakers.Add(speaker.Name);
+            }
+
+            UpdateOldDialogueSpeakers(currentSpeakers, graphData);
+        }
+
+        private static void SaveSpeakersToAssets()
+        {
+            foreach (var speaker in CreatedSpeakers)
+            {
+                SaveAsset(speaker.Value);
+            }
         }
 
         private static T CreateAsset<T>(string path, string assetName) where T : ScriptableObject

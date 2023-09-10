@@ -1,3 +1,4 @@
+using FrameworksXD.DialogueXD.Data;
 using FrameworksXD.DialogueXD.Editor.Save;
 using FrameworksXD.DialogueXD.Editor.Utilities;
 using System;
@@ -23,8 +24,11 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor.Elements
         private Color DefaultTitleBackgroundColor;
         public DialogueGroup Group { get; set; }
 
-        private TextField DialogueNameTextField;
+        public int SpeakerIndex { get; set; }
 
+
+        private TextField DialogueNameTextField;
+        private PopupField<DialogueSpeakerData> SpeakerPopup;
 
         public virtual void Initialize(string nodeName, DialogueGraphView dialogueGraphView, Vector2 position)
         {
@@ -102,8 +106,31 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor.Elements
             });
             textTextField.AddClasses("d-node__textfield", "d-node__quote-textfield");
             textFoldout.Add(textTextField);
+
+            Foldout additionalSettingsFoldout = DialogueUIElementUtilities.CreateFoldout("Additional settings");
+            SpeakerPopup = new PopupField<DialogueSpeakerData>("Speaker", DialogueGraphView.GetAvailableSpeakers(), SpeakerIndex, GetSpeakerPopupValue, GetSpeakerPopupValue);
+            SpeakerPopup.RegisterCallback(new EventCallback<MouseDownEvent>(OnSpeakerPopupMouseDown), TrickleDown.TrickleDown);
+            additionalSettingsFoldout.Add(SpeakerPopup);
+
             customDataContainer.Add(textFoldout);
-            extensionContainer.Add(textFoldout);
+            customDataContainer.Add(additionalSettingsFoldout);
+
+            extensionContainer.Add(customDataContainer);
+        }
+
+        private void OnSpeakerPopupMouseDown(MouseDownEvent evt)
+        {
+            RefreshSpeakers();
+        }
+
+        private string GetSpeakerPopupValue(DialogueSpeakerData speaker)
+        {
+            return speaker.Name;
+        }
+
+        public void RefreshSpeakers()
+        {
+            SpeakerPopup.choices = DialogueGraphView.GetAvailableSpeakers();
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
@@ -152,5 +179,9 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor.Elements
 
         public string GetDialogueNameTextFieldValue() => DialogueNameTextField.value;
 
+        public DialogueSpeakerData GetSelectedSpeaker()
+        {
+            return SpeakerPopup.value;
+        }
     }
 }

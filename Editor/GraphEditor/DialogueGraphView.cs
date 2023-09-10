@@ -1,3 +1,4 @@
+using FrameworksXD.DialogueXD.Data;
 using FrameworksXD.DialogueXD.Editor.Error;
 using FrameworksXD.DialogueXD.Editor.GraphEditor.Elements;
 using FrameworksXD.DialogueXD.Editor.Save;
@@ -5,6 +6,7 @@ using FrameworksXD.DialogueXD.Editor.Utilities;
 using FrameworksXD.DialogueXD.Utilities;
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -113,6 +115,11 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
                 default:
                     throw new Exception($"DialogueType: {dialogueType} is not implemented");
             }
+        }
+
+        public List<DialogueSpeakerData> GetAvailableSpeakers()
+        {
+            return DialogueGraphWindow.GetAvailableSpeakers();
         }
 
         public DialogueNode CreateNode(DialogueType dialogueType, Vector2 position, string nodeName = "DialogueName", bool shouldDraw = true)
@@ -386,6 +393,14 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             MiniMap.SetPosition(new Rect(15, 50, 200, 180));
             Add(MiniMap);
             ToggleMiniMap();
+        }
+
+        private void AddBlackBoardItemRequested(Blackboard blackboard)
+        {
+
+            var gm = new GenericMenu();
+            gm.AddItem(new GUIContent("Vector1"), false, () => Debug.Log("request"));
+            gm.ShowAsContext();
         }
 
         public Vector2 GetLocalMousePosition(Vector2 mousePosition, bool isSearchWindow = false)

@@ -1,3 +1,5 @@
+using FrameworksXD.DialogueXD.Data;
+using FrameworksXD.DialogueXD.Editor.GraphEditor.GraphSettings;
 using FrameworksXD.DialogueXD.Editor.Utilities;
 using System;
 using System.Collections;
@@ -21,6 +23,9 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
 
         private DialogueGraphView DialogueGraphView;
 
+        private GraphSettingsWindow GraphSettingsWindow;
+        public DialogueGraphSettingsData DialogueGraphSettings { get; set; }
+
         [MenuItem("Tools/Dialogue Graph")]
         public static void Open()
         {
@@ -29,9 +34,17 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
 
         private void OnEnable()
         {
+            DialogueGraphSettings = new DialogueGraphSettingsData();
+            Debug.LogError("OnEnable");
             AddGraphView();
             AddToolbar();
             AddStyles();
+            TryRefreshingSettingsWondow();
+        }
+
+        private void OnDisable()
+        {
+            Debug.LogError("OnDisEnable");
         }
 
 
@@ -51,7 +64,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
 
         private void AddToolbar()
         {
-            Toolbar toolbar = new Toolbar();
+            Toolbar controlToolbar = new Toolbar();
 
             Button loadButton = DialogueUIElementUtilities.CreateButton("Load", Load);
 
@@ -63,23 +76,29 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
 
             Button clearButton = DialogueUIElementUtilities.CreateButton("Clear", Clear);
             Button resetButton = DialogueUIElementUtilities.CreateButton("Reset", ResetGraph);
+            Button settingsButton = DialogueUIElementUtilities.CreateButton("Settings", ShowSettingsWindow);
 
             MiniMapButton = DialogueUIElementUtilities.CreateButton("MiniMap", ToggleMiniMap);
 
             ToolbarSpacer spacer = new ToolbarSpacer();
             spacer.flex = true;
 
-            toolbar.Add(FileNameTextField);
-            toolbar.Add(SaveButton);
-            toolbar.Add(MiniMapButton);
-            toolbar.Add(spacer);
-            toolbar.Add(clearButton);
-            toolbar.Add(resetButton);
-            toolbar.Add(loadButton);
+            controlToolbar.Add(FileNameTextField);
+            controlToolbar.Add(SaveButton);
+            controlToolbar.Add(MiniMapButton);
+            controlToolbar.Add(settingsButton);
+            controlToolbar.Add(spacer);
+            controlToolbar.Add(clearButton);
+            controlToolbar.Add(resetButton);
+            controlToolbar.Add(loadButton);
 
-            toolbar.AddStyleSheets("DialogueGraphToolbarStyles.uss");
+            controlToolbar.AddStyleSheets("DialogueGraphToolbarStyles.uss");
+            rootVisualElement.Add(controlToolbar);
+        }
 
-            rootVisualElement.Add(toolbar);
+        private void ShowSettingsWindow()
+        {
+            GraphSettingsWindow = GraphSettingsWindow.Open(DialogueGraphSettings);
         }
 
         public void SetSavingEnabled(bool enabled)
@@ -124,7 +143,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
                 );
                 return;
             }
-            DialogueIOUtility.Initialize(DialogueGraphView, FileNameTextField.value);
+            DialogueIOUtility.Initialize(DialogueGraphView, this, FileNameTextField.value);
             DialogueIOUtility.Save();
         }
 
@@ -137,6 +156,19 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
         {
             Clear();
             UpdateFileName(DefaultFileName);
+            DialogueGraphSettings = new DialogueGraphSettingsData();
+            TryRefreshingSettingsWondow();
+        }
+
+        public List<DialogueSpeakerData> GetAvailableSpeakers()
+        {
+            return DialogueGraphSettings.DialogueSpeakerData;
+        }
+
+        private void TryRefreshingSettingsWondow()
+        {
+            if(GraphSettingsWindow != null)
+                ShowSettingsWindow();
         }
 
         private void Load()
@@ -154,8 +186,9 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             }
 
             Clear();
-            DialogueIOUtility.Initialize(DialogueGraphView, Path.GetFileNameWithoutExtension(path));
+            DialogueIOUtility.Initialize(DialogueGraphView, this, Path.GetFileNameWithoutExtension(path));
             DialogueIOUtility.Load();
+            TryRefreshingSettingsWondow();
         }
 
         private void ToggleMiniMap()

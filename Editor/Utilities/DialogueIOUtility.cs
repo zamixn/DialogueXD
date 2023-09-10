@@ -20,30 +20,36 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
         private const string DialoguesSOPath = "Assets/Dialogues";
         private const string DialogueFolderName = "Dialogues";
         private const string GlobalFolderName = "Global";
+        private const string SpeakerFolderName = "Speakers";
         private const string GraphSOSuffix = "Graph";
 
         private static string GetGroupFolderPath(string groupName) => $"{ContainerFolderPath}/Groups/{groupName}";
         private static string GetGroupDialoguesFolderPath(string groupName) => $"{GetGroupFolderPath(groupName)}/{DialogueFolderName}";
         private static string GetGlobalDialoguesPath() => $"{ContainerFolderPath}/{GlobalFolderName}/{DialogueFolderName}";
+        private static string GetDialogueSpeakersPath() => $"{ContainerFolderPath}/{SpeakerFolderName}";
 
         private static string GraphFileName;
         private static string ContainerFolderPath;
         private static DialogueGraphView DialogueGraphView;
+        private static DialogueGraphWindow DialogueGraphWindow;
         private static List<DialogueGroup> Groups;
         private static List<DialogueNode> Nodes;
         private static List<StickyNote> StickyNotes;
 
         private static Dictionary<string, DialogueGroupSO> CreatedDialogueGroup;
         private static Dictionary<string, DialogueSO> CreatedDialogues;
+        private static Dictionary<string, DialogueSpeakerSO> CreatedSpeakers;
 
         private static Dictionary<string, DialogueGroup> LoadedGroups;
         private static Dictionary<string, DialogueNode> LoadedNodes;
+        private static DialogueGraphSettingsData LoadedGraphSettings;
 
-        public static void Initialize(DialogueGraphView dialogueGraphView, string graphName)
+        public static void Initialize(DialogueGraphView dialogueGraphView, DialogueGraphWindow dialogueGraphWindow, string graphName)
         {
             GraphFileName = graphName;
             ContainerFolderPath = $"{DialoguesSOPath}/{GraphFileName}";
             DialogueGraphView = dialogueGraphView;
+            DialogueGraphWindow = dialogueGraphWindow;
 
             Groups = new List<DialogueGroup>();
             Nodes = new List<DialogueNode>();
@@ -51,9 +57,12 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
             CreatedDialogueGroup = new Dictionary<string, DialogueGroupSO>();
             CreatedDialogues = new Dictionary<string, DialogueSO>();
+            CreatedSpeakers = new Dictionary<string, DialogueSpeakerSO>();
 
             LoadedGroups = new Dictionary<string, DialogueGroup>();
             LoadedNodes = new Dictionary<string, DialogueNode>();
+
+            LoadedGraphSettings = null;
         }
 
         public static void Save()
@@ -68,6 +77,8 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             DialogueContainerSO dialogueContainer = CreateAsset<DialogueContainerSO>(ContainerFolderPath, GraphFileName);
             dialogueContainer.Initialize(GraphFileName);
 
+            SaveDialogueGraphSettings(graphData);
+            SaveDialogueSpeakers(graphData);
             SaveGroups(graphData, dialogueContainer);
             SaveNodes(graphData, dialogueContainer);
             SaveStickyNotes(graphData);
@@ -75,10 +86,50 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             SaveAsset(graphData);
             SaveAsset(dialogueContainer);
             SaveGroupsToAssets();
+            SaveSpeakersToAssets();
 
             CommitAssetsToFiles();
 
             ClearCachedData();
+        }
+
+        private static void SaveSpeakersToAssets()
+        {
+            foreach (var speaker in CreatedSpeakers)
+            {
+                SaveAsset(speaker.Value);
+            }
+        }
+
+        private static void SaveDialogueSpeakers(DialogueGraphSaveDataSO graphData)
+        {
+            var speakers = graphData.Speakers;
+
+            var path = GetDialogueSpeakersPath();
+            List<string> currentSpeakers = new List<string>();
+            foreach (var speaker in speakers)
+            {
+                if (string.IsNullOrEmpty(speaker.Id))
+                    continue;
+                DialogueSpeakerSO speakerSO = CreateAsset<DialogueSpeakerSO>(path, speaker.Name);
+                speakerSO.Initialize(speaker.Id, speaker.Name);
+                CreatedSpeakers.Add(speaker.Id, speakerSO);
+                currentSpeakers.Add(speaker.Name);
+            }
+
+            UpdateOldDialogueSpeakers(currentSpeakers, graphData);
+        }
+        private static void UpdateOldDialogueSpeakers(List<string> currentDialogueSpeakers, DialogueGraphSaveDataSO graphData)
+        {
+            if (graphData.OldSpeakerNames != null && graphData.OldSpeakerNames.Count != 0)
+            {
+                List<string> speakersToRemove = graphData.OldSpeakerNames.Except(currentDialogueSpeakers).ToList();
+                foreach (string speakerToRemove in speakersToRemove)
+                {
+                    RemoveAsset(GetDialogueSpeakersPath(), speakerToRemove);
+                }
+            }
+            graphData.OldSpeakerNames = new List<string>(currentDialogueSpeakers);
         }
 
         public static void Load()
@@ -98,6 +149,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
             DialogueGraphWindow.UpdateFileName(graphData.FileName);
             LoadGroups(graphData.Groups);
+            LoadDialogueSettings(graphData);
             LoadNodes(graphData.Nodes);
             LoadNodesConnections();
             LoadStickyNotes(graphData.StickyNotes);
@@ -195,7 +247,9 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
                 dialogue = CreateAsset<DialogueSO>(GetGlobalDialoguesPath(), node.DialogueName);
                 dialogueContainer.UngroupedDialogues.Add(node.Id, dialogue);
             }
-            dialogue.Initialize(node.Id, node.DialogueName, node.Text, ConvertNodeChoicesToDialogueChoices(node.Choices), node.DialogueType, node.IsStartingNode());
+
+            DialogueSpeakerSO speakerSO = string.IsNullOrEmpty(node.GetSelectedSpeaker().Id) ? null : CreatedSpeakers[node.GetSelectedSpeaker().Id];
+            dialogue.Initialize(node.Id, node.DialogueName, node.Text, speakerSO, ConvertNodeChoicesToDialogueChoices(node.Choices), node.DialogueType, node.IsStartingNode());
             CreatedDialogues.Add(node.Id, dialogue);
             SaveAsset(dialogue);
         }
@@ -225,7 +279,8 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
                 Text = node.Text,
                 GroupId = node.Group?.Id,
                 DialogueType = node.DialogueType,
-                Position = node.GetPosition().position
+                Position = node.GetPosition().position,
+                SpeakerId = node.GetSelectedSpeaker().Id,
             };
 
             graphData.Nodes.Add(nodeData);
@@ -304,6 +359,16 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             }
         }
 
+        private static void SaveDialogueGraphSettings(DialogueGraphSaveDataSO graphData)
+        {
+            List<DialogueSpeakerData> speakerData = new List<DialogueSpeakerData>();
+            foreach (var speaker in DialogueGraphWindow.DialogueGraphSettings.DialogueSpeakerData)
+            {
+                speakerData.Add(new DialogueSpeakerData(speaker.Name) { Id = speaker.Id });
+            }
+            graphData.Speakers = speakerData;
+        }
+
         private static T CreateAsset<T>(string path, string assetName) where T : ScriptableObject
         {
             T asset = LoadAsset<T>(path, assetName);
@@ -358,6 +423,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
             CreateFolder(DialoguesSOPath, GraphFileName);
             CreateFolder(ContainerFolderPath, GlobalFolderName);
+            CreateFolder(ContainerFolderPath, SpeakerFolderName);
             CreateFolder(ContainerFolderPath, "Groups");
             CreateFolder($"{ContainerFolderPath}/{GlobalFolderName}", DialogueFolderName);
         }
@@ -421,6 +487,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
                 node.Id = nodeData.Id;
                 node.Choices = CloneNodeChoices(nodeData.Choices);
                 node.Text = nodeData.Text;
+                node.SpeakerIndex = LoadedGraphSettings.GetSpeakerIndex(nodeData.SpeakerId);
 
                 node.Draw();
 
@@ -469,6 +536,22 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
             }
         }
 
+        private static void LoadDialogueSettings(DialogueGraphSaveDataSO graphData)
+        {
+            DialogueGraphSettingsData settingsData = new DialogueGraphSettingsData();
+            settingsData.Clear();
+            foreach (var speaker in graphData.Speakers)
+            {
+                settingsData.DialogueSpeakerData.Add(new DialogueSpeakerData()
+                {
+                    Id = speaker.Id,
+                    Name = speaker.Name
+                });
+            }
+            LoadedGraphSettings = settingsData;
+            DialogueGraphWindow.DialogueGraphSettings = settingsData;
+        }
+
         #endregion
 
         #region Generic
@@ -500,9 +583,12 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
 
             CreatedDialogueGroup = null;
             CreatedDialogues = null;
+            CreatedSpeakers = null;
 
             LoadedGroups = null;
             LoadedNodes = null;
+
+            LoadedGraphSettings = null;
         }
 
         private static string MakeAssetPath(string path, string assetName)

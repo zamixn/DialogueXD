@@ -43,7 +43,7 @@ namespace FrameworksXD.DialogueXD
         {
             OnDialogueShown = onShown;
             CurrentDialogue = dialogue;
-            Debug.LogError($"Showing dialogue: {dialogue.GetDialogueText()}");
+            Debug.LogError($"Showing dialogue ({dialogue.Speaker.SpeakerName}): {dialogue.GetDialogueText()}");
         }
     }
 }

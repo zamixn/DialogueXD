@@ -19,6 +19,7 @@ namespace FrameworksXD.DialogueXD
 
         private void Start()
         {
+            StartingDialogue = DialogueGraph.GetDialogue(StartingDialogueID, GroupID);
             StartDialogue();
         }
 

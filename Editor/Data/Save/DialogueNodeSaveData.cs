@@ -10,6 +10,7 @@ namespace FrameworksXD.DialogueXD.Editor.Save
         [field: SerializeField] public string Id { get; set; }
         [field: SerializeField] public string Name { get; set; }
         [field: SerializeField] public string Text { get; set; }
+        [field: SerializeField] public string SpeakerId { get; set; }
         [field: SerializeField] public List<DialogueChoiceSaveData> Choices { get; set; }
         [field: SerializeField] public string GroupId { get; set; }
         [field: SerializeField] public DialogueType DialogueType { get; set; }

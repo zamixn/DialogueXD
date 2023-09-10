@@ -29,7 +29,7 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
         private void OnEnable()
         {
             DialogueContainerProperty = serializedObject.FindProperty("DialogueGraph");
-            DialogueGroupIDProperty = serializedObject.FindProperty("GroupID");
+            DialogueGroupIDProperty = serializedObject.FindProperty("DialogueGroupID");
             StartingDialogueIDProperty = serializedObject.FindProperty("StartingDialogueID");
             DialogueVisualizerProperty = serializedObject.FindProperty("DialogueVisualizer");
 

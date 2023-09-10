@@ -10,7 +10,7 @@ namespace FrameworksXD.DialogueXD
     public class DialogueRunner : MonoBehaviour
     {
         [SerializeField] private DialogueContainerSO DialogueGraph;
-        [SerializeField] private string GroupID;
+        [SerializeField] private string DialogueGroupID;
         [SerializeField] private string StartingDialogueID;
         [SerializeField] private DialogueVisualizer DialogueVisualizer;
 
@@ -19,7 +19,7 @@ namespace FrameworksXD.DialogueXD
 
         private void Start()
         {
-            StartingDialogue = DialogueGraph.GetDialogue(StartingDialogueID, GroupID);
+            StartingDialogue = DialogueGraph.GetDialogue(StartingDialogueID, DialogueGroupID);
             StartDialogue();
         }
 

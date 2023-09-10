@@ -308,21 +308,22 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
         {
             ContextualMenuManipulator contextualMenuManipulator = new ContextualMenuManipulator(
                 menuEvent => menuEvent.menu.AppendAction("Add Comment",
-                    actionEvent => CreateStickyNote("Title", "Comment...", GetLocalMousePosition(actionEvent.eventInfo.localMousePosition))
+                    actionEvent => CreateStickyNote("Title", "Comment...", new Rect(GetLocalMousePosition(actionEvent.eventInfo.localMousePosition), Vector2.zero))
                 )
             );
 
             return contextualMenuManipulator;
         }
-        public StickyNote CreateStickyNote(string title, string text, Vector2 position, StickyNoteTheme theme = StickyNoteTheme.Black, StickyNoteFontSize fontSize = StickyNoteFontSize.Small)
+        public StickyNote CreateStickyNote(string title, string text, Rect position, StickyNoteTheme theme = StickyNoteTheme.Black, StickyNoteFontSize fontSize = StickyNoteFontSize.Small)
         {
-            StickyNote stickyNote = new StickyNote(position)
+            StickyNote stickyNote = new StickyNote(position.position)
             {
                 title = title,
                 contents = text,
                 fontSize = fontSize,
                 theme = theme,
             };
+            stickyNote.SetPosition(position);
 
             AddElement(stickyNote);
             StickyNotes.Add(stickyNote);

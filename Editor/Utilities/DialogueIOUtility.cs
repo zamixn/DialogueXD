@@ -312,7 +312,7 @@ namespace FrameworksXD.DialogueXD.Editor.Utilities
                 {
                     Title = stickyNote.title,
                     Content = stickyNote.contents,
-                    Position = stickyNote.GetPosition().position,
+                    Position = stickyNote.GetPosition(),
                     Theme = stickyNote.theme,
                     FontSize = stickyNote.fontSize
                 };

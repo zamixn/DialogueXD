@@ -3,6 +3,7 @@ using FrameworksXD.DialogueXD.ScriptableObjects;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace FrameworksXD.DialogueXD
 {
@@ -14,34 +15,64 @@ namespace FrameworksXD.DialogueXD
         [SerializeField] private string StartingDialogueID;
         [SerializeField] private DialogueVisualizer DialogueVisualizer;
 
+        public UnityEvent<DialogueSO> OnDialogueSequenceStarted;
+        public UnityEvent<DialogueSO> OnDialogueShown;
+        public UnityEvent<DialogueChoiceData> OnDialogueChoiceSelected;
+        public UnityEvent OnDialogueSequenceFinished;
+
         private DialogueSO StartingDialogue;
         private DialogueSO CurrentDialogue;
 
-        private void Start()
-        {
-            StartingDialogue = DialogueGraph.GetDialogue(StartingDialogueID, DialogueGroupID);
-            StartDialogue();
+        public DialogueSO GetStartingDialogue()
+        { 
+            if(StartingDialogue == null)
+                StartingDialogue = DialogueGraph.GetDialogue(StartingDialogueID, DialogueGroupID);
+            return StartingDialogue;
         }
 
-        public void StartDialogue()
+        public DialogueSO GetCurrentDialogue()
         {
-            NextDialogue(StartingDialogue);
+            return CurrentDialogue;
         }
 
-        private void NextDialogue(DialogueSO nextDialogue)
+        public void SetDialogueVisualizer(DialogueVisualizer dialogueVisualizer)
         {
-            CurrentDialogue = nextDialogue;
-            DialogueVisualizer.ShowDialogue(CurrentDialogue, OnDialogueShown);
+            DialogueVisualizer = dialogueVisualizer;
         }
 
-        private void OnDialogueShown(DialogueChoiceData choice)
+        public virtual void StartDialogue()
         {
+            GetStartingDialogue();
+            OnDialogueSequenceStarted.Invoke(StartingDialogue);
+            ShowDialogue(StartingDialogue);
+        }
+
+        public virtual void StartDialogue(DialogueSO dialogue)
+        {
+            OnDialogueSequenceStarted.Invoke(dialogue);
+            ShowDialogue(dialogue);
+        }
+
+        public virtual void ShowDialogue(DialogueSO dialogue)
+        {
+            CurrentDialogue = dialogue;
+            DialogueVisualizer.ShowDialogue(CurrentDialogue, OnChoiceSelected);
+            OnDialogueShown.Invoke(CurrentDialogue);
+        }
+
+        protected void OnChoiceSelected(DialogueChoiceData choice)
+        {
+            OnDialogueChoiceSelected.Invoke(choice);
             if (choice.NextDialogue == null)
-            {
-                Debug.LogError("Dialogue finished");
-            }
+                FinishDialogueSequence();
             else
-                NextDialogue(choice.NextDialogue);
+                ShowDialogue(choice.NextDialogue);
+        }
+
+        protected virtual void FinishDialogueSequence()
+        {
+            DialogueVisualizer.CloseDialogue();
+            OnDialogueSequenceFinished.Invoke();
         }
     }
 }

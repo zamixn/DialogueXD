@@ -7,42 +7,24 @@ using UnityEngine;
 
 namespace FrameworksXD.DialogueXD
 {
-    public class DialogueVisualizer : MonoBehaviour
+    public abstract class DialogueVisualizer : MonoBehaviour
     {
-        private Action<DialogueChoiceData> OnDialogueShown;
-        private DialogueSO CurrentDialogue;
+        protected Action<DialogueChoiceData> OnChoiceSelected;
+        protected DialogueSO CurrentDialogue;
 
-        private void Update()
+        public void ShowDialogue(DialogueSO dialogue, Action<DialogueChoiceData> onChoiceSelected)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-                OnDialogueShown?.Invoke(GetSelectedChoice());
-        }
-
-        private DialogueChoiceData GetSelectedChoice()
-        {
-            List<DialogueChoiceData> choices = CurrentDialogue.Choices;
-            DialogueChoiceData choice = null;
-            switch (CurrentDialogue.DialogueType)
-            {
-                case DialogueType.SingleChoice:
-                    choice = choices[0];
-                    break;
-                case DialogueType.MultipleChoice:
-                    choice = choices[UnityEngine.Random.Range(0, choices.Count)];
-                    break;
-                default:
-                    Debug.LogError($"Invalid dialogue type: {CurrentDialogue.DialogueType}");
-                    break;
-            }
-            Debug.LogError($"Selecting: {choice.Text}");
-            return choice;
-        }
-
-        public void ShowDialogue(DialogueSO dialogue, Action<DialogueChoiceData> onShown)
-        {
-            OnDialogueShown = onShown;
+            OnChoiceSelected = onChoiceSelected;
             CurrentDialogue = dialogue;
-            Debug.LogError($"Showing dialogue ({dialogue.GetSpeakerName()}): {dialogue.GetDialogueText()}");
+            ShowDialogue();
+        }
+
+        protected abstract void ShowDialogue();
+
+        public virtual void CloseDialogue() 
+        {
+            OnChoiceSelected = null;
+            CurrentDialogue = null;
         }
     }
 }

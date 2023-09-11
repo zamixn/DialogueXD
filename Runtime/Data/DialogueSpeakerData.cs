@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FrameworksXD.DialogueXD.Data
+namespace FrameworksXD.DialogueXD
 {
     [System.Serializable]
     public class DialogueSpeakerData

@@ -1,7 +1,6 @@
 using FrameworksXD.DialogueXD.Editor.GraphEditor;
 using FrameworksXD.DialogueXD.Editor.GraphEditor.Elements;
 using FrameworksXD.DialogueXD.Editor.Save;
-using FrameworksXD.DialogueXD.Data;
 using FrameworksXD.DialogueXD.ScriptableObjects;
 using FrameworksXD.DialogueXD.Utilities;
 using System;

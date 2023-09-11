@@ -1,7 +1,7 @@
 using FrameworksXD.DialogueXD.ScriptableObjects;
 using UnityEngine;
 
-namespace FrameworksXD.DialogueXD.Data
+namespace FrameworksXD.DialogueXD
 {
 
     [System.Serializable]

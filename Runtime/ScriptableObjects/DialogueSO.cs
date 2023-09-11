@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace FrameworksXD.DialogueXD.ScriptableObjects
 {
-    using Data;
     using System;
 
     public class DialogueSO : ScriptableObject

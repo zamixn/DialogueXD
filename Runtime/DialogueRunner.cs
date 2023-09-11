@@ -1,7 +1,4 @@
-using FrameworksXD.DialogueXD.Data;
 using FrameworksXD.DialogueXD.ScriptableObjects;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 

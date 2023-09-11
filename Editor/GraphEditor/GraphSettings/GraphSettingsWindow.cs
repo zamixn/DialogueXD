@@ -54,7 +54,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor.GraphSettings
                 }
                 if (GUILayout.Button("New"))
                 {
-                    speakers.Add(new Data.DialogueSpeakerData());
+                    speakers.Add(new DialogueSpeakerData());
                 }
             }
         }

@@ -1,4 +1,3 @@
-using FrameworksXD.DialogueXD.Data;
 using FrameworksXD.DialogueXD.Editor.GraphEditor.GraphSettings;
 using FrameworksXD.DialogueXD.Editor.Utilities;
 using System;

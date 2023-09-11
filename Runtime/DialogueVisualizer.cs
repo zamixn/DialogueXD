@@ -7,7 +7,6 @@ using UnityEngine;
 
 namespace FrameworksXD.DialogueXD
 {
-
     public class DialogueVisualizer : MonoBehaviour
     {
         private Action<DialogueChoiceData> OnDialogueShown;
@@ -43,7 +42,7 @@ namespace FrameworksXD.DialogueXD
         {
             OnDialogueShown = onShown;
             CurrentDialogue = dialogue;
-            Debug.LogError($"Showing dialogue ({dialogue.Speaker.SpeakerName}): {dialogue.GetDialogueText()}");
+            Debug.LogError($"Showing dialogue ({dialogue.GetSpeakerName()}): {dialogue.GetDialogueText()}");
         }
     }
 }

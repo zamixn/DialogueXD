@@ -37,8 +37,9 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
             {
                 UpdateAvailableDialogueGroups();
                 UpdateAvailableDialogues();
+                RefreshSelectedDialogueGroupIndex();
+                RefreshSelectedDialogueIndex();
             }
-
         }
 
         public override void OnInspectorGUI()
@@ -78,15 +79,18 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
             {
                 DialogueGroupIDProperty.stringValue = "";
                 StartingDialogueIDProperty.stringValue = "";
-                SelectedDialogueIndex = 0;
-                SelectedDialogueGroupIndex = 0;
                 UpdateAvailableDialogueGroups();
                 UpdateAvailableDialogues();
+                RefreshSelectedDialogueGroupIndex();
+                RefreshSelectedDialogueIndex();
             }
             DrawDialogueGroup();
 
             if (prevGroupId != DialogueGroupIDProperty.stringValue)
+            {
                 UpdateAvailableDialogues();
+                RefreshSelectedDialogueIndex();
+            }
 
             DialogueInspectorUtilities.DrawSpace(SpacingValue);
 
@@ -115,12 +119,29 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
                 var group = allGroups[i - 1];
                 AvailableDialogueGroups.Add(group.GroupName, group);
                 AvailableDialogueGroupNames[i] = group.GroupName;
-                if (selectedGroup != null && selectedGroup.Id == group.Id)
-                    SelectedDialogueGroupIndex = i;
             }
+        }
 
+        private void RefreshSelectedDialogueGroupIndex()
+        {
+            DialogueContainerSO dialogueContainer = (DialogueContainerSO)DialogueContainerProperty.objectReferenceValue;
+            DialogueGroupSO selectedGroup = dialogueContainer.GetDialogueGroup(DialogueGroupIDProperty.stringValue);
             if (selectedGroup == null)
+            {
                 SelectedDialogueGroupIndex = 0;
+                return;
+            }
+            List<DialogueGroupSO> allGroups = dialogueContainer.GetAllDialogueGroups();
+            for (int i = 0; i < allGroups.Count; i++)
+            {
+                var group = allGroups[i];
+                if (selectedGroup.Id == group.Id) 
+                { 
+                    SelectedDialogueGroupIndex = i + 1;
+                    return;
+                }
+            }
+            SelectedDialogueGroupIndex = 0;
         }
 
         private void UpdateAvailableDialogues()
@@ -142,16 +163,39 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
                 var dialogue = availableDialogues[i - 1];
                 AvailableDialogues.Add(dialogue.DialogueName, dialogue);
                 AvailableDialogueNames[i] = dialogue.DialogueName;
-                if (selectedDialogue != null && selectedDialogue.Id == dialogue.Id)
-                    SelectedDialogueIndex = i;
             }
+        }
 
-            if(selectedDialogue == null)
+        private void RefreshSelectedDialogueIndex()
+        {
+            DialogueContainerSO dialogueContainer = (DialogueContainerSO)DialogueContainerProperty.objectReferenceValue;
+
+            DialogueSO selectedDialogue = dialogueContainer.GetDialogue(StartingDialogueIDProperty.stringValue, DialogueGroupIDProperty.stringValue);
+            if (selectedDialogue == null)
+            {
                 SelectedDialogueIndex = 0;
+                return;
+            }
+            string groupID = DialogueGroupIDProperty.stringValue;
+            List<DialogueSO> availableDialogues = dialogueContainer.GetAllAvailableDialogues(groupID);
+            availableDialogues = availableDialogues.Where(d => d.IsStartingDialogue).ToList();
+
+            for (int i = 0; i < availableDialogues.Count; i++)
+            {
+                var dialogue = availableDialogues[i];
+                if (selectedDialogue.Id == dialogue.Id)
+                {
+                    SelectedDialogueIndex = i + 1;
+                    return;
+                }
+            }
+            SelectedDialogueIndex = 0;
         }
 
         private void DrawDialogueGroup()
         {
+            if (SelectedDialogueGroupIndex > 0 && AvailableDialogueGroups[AvailableDialogueGroupNames[SelectedDialogueGroupIndex]] == null)
+                UpdateAvailableDialogueGroups();
             var dialogueGroup = DrawDialogueGroupHelperField();
 
             if (dialogueGroup != null)
@@ -173,6 +217,8 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
 
         private void DrawDialogue()
         {
+            if (SelectedDialogueIndex > 0 && AvailableDialogues[AvailableDialogueNames[SelectedDialogueIndex]] == null)
+                UpdateAvailableDialogues();
             var dialogue = DrawDialogueHelperField();
 
             if (dialogue != null)

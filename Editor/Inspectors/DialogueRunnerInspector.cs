@@ -3,12 +3,13 @@ using FrameworksXD.DialogueXD.ScriptableObjects;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
 namespace FrameworksXD.DialogueXD.Editor.Inspectors
 {
-    [CustomEditor(typeof(DialogueRunner))]
+    [CustomEditor(typeof(DialogueRunner), true)]
     public class DialogueRunnerInspector : UnityEditor.Editor
     {
         private const int SpacingValue = 10;
@@ -17,6 +18,11 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
         private SerializedProperty DialogueGroupIDProperty;
         private SerializedProperty StartingDialogueIDProperty;
         private SerializedProperty DialogueVisualizerProperty;
+
+        public SerializedProperty OnDialogueSequenceStartedProperty;
+        public SerializedProperty OnDialogueShownProperty;
+        public SerializedProperty OnDialogueChoiceSelectedProperty;
+        public SerializedProperty OnDialogueSequenceFinishedProperty;
 
         private Dictionary<string, DialogueSO> AvailableDialogues;
         private string[] AvailableDialogueNames;
@@ -32,6 +38,11 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
             DialogueGroupIDProperty = serializedObject.FindProperty("DialogueGroupID");
             StartingDialogueIDProperty = serializedObject.FindProperty("StartingDialogueID");
             DialogueVisualizerProperty = serializedObject.FindProperty("DialogueVisualizer");
+
+            OnDialogueSequenceStartedProperty = serializedObject.FindProperty("OnDialogueSequenceStarted");
+            OnDialogueShownProperty = serializedObject.FindProperty("OnDialogueShown");
+            OnDialogueChoiceSelectedProperty = serializedObject.FindProperty("OnDialogueChoiceSelected");
+            OnDialogueSequenceFinishedProperty = serializedObject.FindProperty("OnDialogueSequenceFinished");
 
             if (IsDialogueContainerValid())
             {
@@ -50,8 +61,45 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
             DialogueInspectorUtilities.DrawSpace(SpacingValue);
             DialogueInspectorUtilities.DrawSpace(SpacingValue);
             DrawVisualizerSettings();
+            DialogueInspectorUtilities.DrawSpace(SpacingValue);
+            DialogueInspectorUtilities.DrawSpace(SpacingValue);
+            DrawEvents();
+
+            DrawChildClassInspector();
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawEvents()
+        {
+            DialogueInspectorUtilities.DrawHeader("Events");
+            OnDialogueSequenceStartedProperty.DrawPropertyField();
+            OnDialogueShownProperty.DrawPropertyField();
+            OnDialogueChoiceSelectedProperty.DrawPropertyField();
+            OnDialogueSequenceFinishedProperty.DrawPropertyField();
+        }
+
+        private void DrawChildClassInspector()
+        {
+            if (target.GetType() != typeof(DialogueRunner))
+            {
+                DialogueInspectorUtilities.DrawSpace(SpacingValue);
+                DialogueInspectorUtilities.DrawSpace(SpacingValue);
+                DialogueInspectorUtilities.DrawHeader($"{target.GetType()} inspector");
+                MemberInfo[] infos = target.GetType().GetMembers(
+                                    BindingFlags.DeclaredOnly |
+                                    BindingFlags.NonPublic |
+                                    BindingFlags.Public |
+                                    BindingFlags.Static |
+                                    BindingFlags.Instance);
+                foreach (var info in infos)
+                {
+                    SerializedProperty property = serializedObject.FindProperty(info.Name);
+                    if (property == null)
+                        continue;
+                    EditorGUILayout.PropertyField(property);
+                }
+            }
         }
 
         private void DrawVisualizerSettings()

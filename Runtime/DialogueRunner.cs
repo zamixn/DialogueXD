@@ -68,8 +68,19 @@ namespace FrameworksXD.DialogueXD
 
         protected virtual void FinishDialogueSequence()
         {
-            DialogueVisualizer.CloseDialogue();
+            EndDialogue();
             OnDialogueSequenceFinished.Invoke();
+        }
+
+        public void EndDialogue()
+        {
+            DialogueVisualizer.CloseDialogue();
+            CurrentDialogue = null;
+        }
+
+        public bool IsDialogueRunning()
+        {
+            return CurrentDialogue != null;
         }
     }
 }

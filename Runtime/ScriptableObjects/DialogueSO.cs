@@ -35,5 +35,10 @@ namespace FrameworksXD.DialogueXD.ScriptableObjects
         {
             return Speaker == null ? "None" : Speaker.SpeakerName;
         }
+
+        public bool HasNextDialogue()
+        {
+            return Choices != null && Choices.Count > 0 && Choices[0].NextDialogue != null;
+        }
     }
 }

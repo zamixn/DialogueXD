@@ -9,20 +9,14 @@ using UnityEngine;
 
 namespace FrameworksXD.DialogueXD.Editor.Inspectors
 {
-    [CustomEditor(typeof(DialogueRunner), true)]
-    public class DialogueRunnerInspector : UnityEditor.Editor
+    [CustomEditor(typeof(DialogueHolder), true)]
+    public class DialogueHolderInspector : UnityEditor.Editor
     {
         private const int SpacingValue = 10;
 
         private SerializedProperty DialogueContainerProperty;
         private SerializedProperty DialogueGroupIDProperty;
         private SerializedProperty StartingDialogueIDProperty;
-        private SerializedProperty DialogueVisualizerProperty;
-
-        public SerializedProperty OnDialogueSequenceStartedProperty;
-        public SerializedProperty OnDialogueShownProperty;
-        public SerializedProperty OnDialogueChoiceSelectedProperty;
-        public SerializedProperty OnDialogueSequenceFinishedProperty;
 
         private Dictionary<string, DialogueSO> AvailableDialogues;
         private string[] AvailableDialogueNames;
@@ -37,12 +31,6 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
             DialogueContainerProperty = serializedObject.FindProperty("DialogueGraph");
             DialogueGroupIDProperty = serializedObject.FindProperty("DialogueGroupID");
             StartingDialogueIDProperty = serializedObject.FindProperty("StartingDialogueID");
-            DialogueVisualizerProperty = serializedObject.FindProperty("DialogueVisualizer");
-
-            OnDialogueSequenceStartedProperty = serializedObject.FindProperty("OnDialogueSequenceStarted");
-            OnDialogueShownProperty = serializedObject.FindProperty("OnDialogueShown");
-            OnDialogueChoiceSelectedProperty = serializedObject.FindProperty("OnDialogueChoiceSelected");
-            OnDialogueSequenceFinishedProperty = serializedObject.FindProperty("OnDialogueSequenceFinished");
 
             if (IsDialogueContainerValid())
             {
@@ -57,31 +45,26 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
         {
             serializedObject.Update();
 
+            DrawClassField();
             DrawDialogueSettings();
             DialogueInspectorUtilities.DrawSpace(SpacingValue);
             DialogueInspectorUtilities.DrawSpace(SpacingValue);
-            DrawVisualizerSettings();
-            DialogueInspectorUtilities.DrawSpace(SpacingValue);
-            DialogueInspectorUtilities.DrawSpace(SpacingValue);
-            DrawEvents();
-
             DrawChildClassInspector();
 
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawEvents()
+        private void DrawClassField()
         {
-            DialogueInspectorUtilities.DrawHeader("Events");
-            OnDialogueSequenceStartedProperty.DrawPropertyField();
-            OnDialogueShownProperty.DrawPropertyField();
-            OnDialogueChoiceSelectedProperty.DrawPropertyField();
-            OnDialogueSequenceFinishedProperty.DrawPropertyField();
+            GUI.enabled = false;
+            MonoScript lineScriptAsset = MonoScript.FromMonoBehaviour(target as MonoBehaviour);
+            EditorGUILayout.ObjectField("Script", lineScriptAsset, typeof(MonoScript), true);
+            GUI.enabled = true;
         }
 
         private void DrawChildClassInspector()
         {
-            if (target.GetType() != typeof(DialogueRunner))
+            if (target.GetType() != typeof(DialogueHolder))
             {
                 DialogueInspectorUtilities.DrawSpace(SpacingValue);
                 DialogueInspectorUtilities.DrawSpace(SpacingValue);
@@ -100,12 +83,6 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
                     EditorGUILayout.PropertyField(property);
                 }
             }
-        }
-
-        private void DrawVisualizerSettings()
-        {
-            DialogueInspectorUtilities.DrawHeader("Visualizer Settings");
-            DialogueVisualizerProperty.DrawPropertyField();
         }
 
         private void DrawDialogueSettings()
@@ -156,7 +133,6 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
             DialogueContainerSO dialogueContainer = (DialogueContainerSO)DialogueContainerProperty.objectReferenceValue;
             List<DialogueGroupSO> allGroups = dialogueContainer.GetAllDialogueGroups();
 
-            DialogueGroupSO selectedGroup = dialogueContainer.GetDialogueGroup(DialogueGroupIDProperty.stringValue);
             AvailableDialogueGroups = new Dictionary<string, DialogueGroupSO>(allGroups.Count);
             AvailableDialogueGroupNames = new string[allGroups.Count + 1];
             AvailableDialogueGroups.Add("None", null);

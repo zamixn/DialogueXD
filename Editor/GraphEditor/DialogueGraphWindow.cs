@@ -166,7 +166,8 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
 
         private void Load()
         {
-            string path = EditorUtility.OpenFilePanel("Dialogue Graphs", "Assets/Editor/DialogueSystem/Graphs", "asset");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Assets/Editor/DialogueSystem/Graphs");
+            string path = EditorUtility.OpenFilePanel("Dialogue Graphs", folderPath, "asset");
             if (string.IsNullOrEmpty(path))
             {
                 EditorUtility.DisplayDialog

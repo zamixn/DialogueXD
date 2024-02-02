@@ -1,3 +1,4 @@
+using FrameworksXD.DialogueXD.Editor.GraphEditor;
 using FrameworksXD.DialogueXD.Editor.Utilities;
 using FrameworksXD.DialogueXD.ScriptableObjects;
 using System.Collections;
@@ -51,7 +52,21 @@ namespace FrameworksXD.DialogueXD.Editor.Inspectors
             DialogueInspectorUtilities.DrawSpace(SpacingValue);
             DrawChildClassInspector();
 
+            DrawOpenGraphEditor();
+
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void DrawOpenGraphEditor()
+        {
+            if (GUILayout.Button("Open Graph Editor"))
+            {
+                var graphSO = (DialogueContainerSO)DialogueContainerProperty.objectReferenceValue;
+                if (graphSO)
+                    DialogueGraphWindow.OpenWithGraph(graphSO);
+                else
+                    DialogueGraphWindow.Open();
+            }
         }
 
         private void DrawClassField()

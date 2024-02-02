@@ -31,6 +31,13 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
             GetWindow<DialogueGraphWindow>(WindowName);
         }
 
+        public static void OpenWithGraph(ScriptableObjects.DialogueContainerSO graphSO)
+        {
+            var window = GetWindow<DialogueGraphWindow>(WindowName);
+            var path = Path.Combine("Assets/Editor/DialogueSystem/Graphs", $"{graphSO.FileName}Graph");
+            window.Load(path);
+        }
+
         private void OnEnable()
         {
             DialogueGraphSettings = new DialogueGraphSettingsData();
@@ -59,7 +66,7 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
         {
             Toolbar controlToolbar = new Toolbar();
 
-            Button loadButton = DialogueUIElementUtilities.CreateButton("Load", Load);
+            Button loadButton = DialogueUIElementUtilities.CreateButton("Load", LoadButtonLogic);
 
             FileNameTextField = DialogueUIElementUtilities.CreateTextField(DefaultFileName, "File Name:", callback =>
             {
@@ -164,10 +171,14 @@ namespace FrameworksXD.DialogueXD.Editor.GraphEditor
                 ShowSettingsWindow();
         }
 
-        private void Load()
+        private void LoadButtonLogic()
         {
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Assets/Editor/DialogueSystem/Graphs");
             string path = EditorUtility.OpenFilePanel("Dialogue Graphs", folderPath, "asset");
+            Load(path);
+        }
+        private void Load(string path)
+        {
             if (string.IsNullOrEmpty(path))
             {
                 EditorUtility.DisplayDialog

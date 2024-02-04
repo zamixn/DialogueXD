@@ -33,6 +33,19 @@ namespace FrameworksXD.DialogueXD.ScriptableObjects
             return null;
         }
 
+        public DialogueSO GetDialogueFromAnyGroup(string dialogueId)
+        {
+            if (UngroupedDialogues.ContainsKey(dialogueId))
+                return UngroupedDialogues[dialogueId];
+
+            foreach (var group in DialogueGroups)
+            {
+                if (group.Value.TryGetDialogue(dialogueId, out var dialogue))
+                    return dialogue;
+            }
+            return null;
+        }
+
         public DialogueGroupSO GetDialogueGroup(string groupID)
         {
             if (DialogueGroups.ContainsKey(groupID))
